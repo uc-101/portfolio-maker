@@ -1,4 +1,5 @@
 Portfolio Maker
+
 Portfolio Maker is a client-side web application that enables users to create a professional portfolio through an intuitive form-based interface. As users enter information, the application renders a live portfolio preview in real time and allows them to export it as a standalone HTML file or print it as a PDF.
 The project was built to demonstrate modern frontend development concepts such as state management, dynamic DOM rendering, reusable UI generation, browser storage, and responsive interface design using only HTML, CSS, and JavaScript.
 
