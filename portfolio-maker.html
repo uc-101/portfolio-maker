@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Portfolio Maker — Build a beautiful portfolio in minutes</title>
+<meta name="description" content="Create, preview and download a beautiful personal portfolio. Choose templates, add skills, projects, certificates and education." />
+<style>
+  :root{
+    --bg:#0b1020; --panel:#111834; --panel-2:#0e1530; --border:#1e2a55;
+    --text:#e6ecff; --muted:#8ea0d0; --accent:#3b82f6; --accent-2:#60a5fa;
+    --danger:#ef4444; --ok:#22c55e; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;}
+  a{color:var(--accent-2);text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none}
+  input,textarea,select{font-family:inherit;color:var(--text);background:#0a1230;border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:100%;outline:none;transition:border .15s}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  textarea{min-height:80px;resize:vertical}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  /* Layout */
+  .app{display:grid;grid-template-columns:420px 1fr;height:100vh}
+  @media (max-width:960px){.app{grid-template-columns:1fr;height:auto}}
+  .sidebar{background:var(--panel);border-right:1px solid var(--border);overflow-y:auto}
+  .preview{overflow-y:auto;background:#0a0f24;padding:24px}
+  .brand{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:5}
+  .brand .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:grid;place-items:center;font-weight:800}
+  .brand h1{font-size:16px;margin:0}
+  .brand p{margin:0;font-size:11px;color:var(--muted)}
+  .toolbar{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:69px;z-index:4}
+  .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:var(--accent-2)}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .btn.sm{padding:6px 10px;font-size:12px}
+  .btn.danger{background:transparent;color:var(--danger);border:1px solid #4a1e2b}
+  .btn.danger:hover{background:#2a121a}
+  .section{padding:16px 20px;border-bottom:1px solid var(--border)}
+  .section h2{margin:0 0 4px;font-size:14px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:10px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .card-head strong{font-size:13px}
+  .avatar-wrap{display:flex;align-items:center;gap:12px;margin-top:6px}
+  .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#1a2450;border:1px solid var(--border)}
+  .templates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .tpl{border:2px solid var(--border);border-radius:10px;padding:8px;background:var(--panel-2);cursor:pointer;text-align:center;font-size:12px;transition:all .15s}
+  .tpl:hover{border-color:var(--accent-2)}
+  .tpl.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+  .tpl .swatch{height:36px;border-radius:6px;margin-bottom:6px}
+  .chip-input{display:flex;gap:6px}
+  .chip-input input{flex:1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{background:#1a2450;padding:6px 10px;border-radius:999px;font-size:12px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border)}
+  .chip button{background:none;color:#8ea0d0;font-size:14px;line-height:1}
+  .chip button:hover{color:var(--danger)}
+  /* Preview card */
+  #paper{background:#fff;color:#111;border-radius:16px;max-width:900px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden}
+  /* Template: Modern (default) */
+  .t-modern .hero{padding:40px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;display:flex;gap:24px;align-items:center}
+  .t-modern .hero img{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.2)}
+  .t-modern .hero .kicker{color:#93c5fd;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .t-modern .hero h1{margin:0;font-size:36px}
+  .t-modern .hero .title{color:#93c5fd;font-size:18px;margin-top:4px}
+  .t-modern .body{padding:32px 40px}
+  .t-modern h2.sec{font-size:12px;letter-spacing:2px;color:#3b82f6;text-transform:uppercase;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px}
+  .t-modern .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .t-modern .item{padding:14px;border:1px solid #e5e7eb;border-radius:10px}
+  .t-modern .item h3{margin:0 0 4px;font-size:15px}
+  .t-modern .item .meta{font-size:12px;color:#6b7280}
+  .t-modern .skill{display:inline-block;background:#eff6ff;color:#1e40af;padding:6px 12px;border-radius:999px;font-size:12px;margin:2px;border:1px solid #dbeafe}
+  .t-modern .contact{color:#93c5fd;font-size:13px;margin-top:8px}
+  .t-modern .contact span{margin-right:12px}
+  /* Template: Minimal */
+  .t-minimal{font-family:Georgia,serif}
+  .t-minimal .hero{padding:60px 50px 30px;text-align:center;border-bottom:1px solid #e5e7eb}
+  .t-minimal .hero img{width:100px;height:100px;border-radius:50%;object-fit:cover;margin-bottom:16px}
+  .t-minimal .hero h1{margin:0;font-size:38px;font-weight:400}
+  .t-minimal .hero .title{color:#6b7280;font-style:italic;margin-top:6px}
+  .t-minimal .body{padding:32px 50px}
+  .t-minimal h2.sec{font-size:14px;letter-spacing:4px;text-transform:uppercase;text-align:center;color:#111;margin:24px 0 16px;font-weight:400}
+  .t-minimal .item{padding:12px 0;border-bottom:1px solid #f3f4f6}
+  .t-minimal .item h3{margin:0 0 4px;font-size:16px;font-weight:600}
+  .t-minimal .item .meta{font-size:12px;color:#6b7280;font-style:italic}
+  .t-minimal .grid{display:block}
+  .t-minimal .skill{display:inline-block;color:#111;padding:4px 10px;font-size:13px;border:1px solid #111;border-radius:0;margin:3px;background:transparent}
+  .t-minimal .contact{color:#6b7280;font-size:13px;margin-top:12px;text-align:center}
+  .t-minimal .contact span{margin:0 10px}
+  /* Template: Bold */
+  .t-bold{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  .t-bold .hero{padding:50px 40px;background:#111;color:#fff;position:relative}
+  .t-bold .hero .kicker{color:#fbbf24;font-size:11px;letter-spacing:3px;text-transform:uppercase}
+  .t-bold .hero h1{margin:6px 0 0;font-size:52px;font-weight:900;line-height:1;letter-spacing:-1px}
+  .t-bold .hero .title{color:#fbbf24;font-size:20px;margin-top:8px;font-weight:700}
+  .t-bold .hero img{position:absolute;top:40px;right:40px;width:100px;height:100px;border-radius:12px;object-fit:cover;border:3px solid #fbbf24}
+  .t-bold .body{padding:32px 40px;background:#fff}
+  .t-bold h2.sec{font-size:24px;font-weight:900;margin:24px 0 14px;text-transform:uppercase;color:#111;border-left:6px solid #fbbf24;padding-left:12px}
+  .t-bold .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .t-bold .item{padding:16px;background:#fef3c7;border-radius:8px;border:2px solid #111}
+  .t-bold .item h3{margin:0 0 4px;font-size:16px;font-weight:800}
+  .t-bold .item .meta{font-size:12px;color:#78350f;font-weight:600}
+  .t-bold .skill{display:inline-block;background:#111;color:#fbbf24;padding:6px 12px;font-size:12px;font-weight:700;margin:2px;border-radius:4px}
+  .t-bold .contact{color:#fbbf24;font-size:13px;margin-top:10px;font-weight:600}
+  .t-bold .contact span{margin-right:14px}
+  .empty{color:#9ca3af;font-size:13px;font-style:italic}
+  /* Print */
+  @media print{
+    @page{size:A4;margin:0}
+    body{background:#fff}
+    .sidebar,.brand,.toolbar{display:none !important}
+    .app{display:block;height:auto}
+    .preview{padding:0;background:#fff;overflow:visible}
+    #paper{max-width:100%;box-shadow:none;border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <h1>Portfolio Maker</h1>
+        <p>Build. Preview. Download.</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" onclick="downloadPortfolio()">⬇ Download</button>
+      <button class="btn ghost" onclick="saveData()">💾 Save</button>
+      <button class="btn ghost" onclick="resetAll()">↺ Reset</button>
+    </div>
+    <!-- Templates -->
+    <div class="section">
+      <h2>Template</h2>
+      <div class="templates" id="templates">
+        <div class="tpl active" data-tpl="modern"><div class="swatch" style="background:linear-gradient(135deg,#0f172a,#1e3a8a)"></div>Modern</div>
+        <div class="tpl" data-tpl="minimal"><div class="swatch" style="background:#f5f5f5;border:1px solid #ddd"></div>Minimal</div>
+        <div class="tpl" data-tpl="bold"><div class="swatch" style="background:#111;border-left:6px solid #fbbf24"></div>Bold</div>
+      </div>
+    </div>
+    <!-- Personal -->
+    <div class="section">
+      <h2>About You</h2>
+      <label>Profile Picture</label>
+      <div class="avatar-wrap">
+        <img id="avatarPreview" class="avatar" alt="" />
+        <input type="file" accept="image/*" id="avatarInput" style="display:none" />
+        <button class="btn ghost sm" onclick="document.getElementById('avatarInput').click()">Upload</button>
+        <button class="btn danger sm" onclick="removeAvatar()">Remove</button>
+      </div>
+      <label>Full Name</label>
+      <input id="f_name" placeholder="Jane Doe" />
+      <label>Title / Role</label>
+      <input id="f_title" placeholder="Marketing Analytics Specialist" />
+      <label>About</label>
+      <textarea id="f_about" placeholder="Short bio about yourself..."></textarea>
+      <div class="row">
+        <div><label>Email</label><input id="f_email" placeholder="you@email.com" /></div>
+        <div><label>Phone</label><input id="f_phone" placeholder="+1 555 000" /></div>
+      </div>
+      <div class="row">
+        <div><label>Location</label><input id="f_location" placeholder="City, Country" /></div>
+        <div><label>Website</label><input id="f_website" placeholder="yoursite.com" /></div>
+      </div>
+    </div>
+    <!-- Skills -->
+    <div class="section">
+      <h2>Skills</h2>
+      <div class="chip-input">
+        <input id="skillInput" placeholder="e.g. Python" onkeydown="if(event.key==='Enter'){addSkill();event.preventDefault()}" />
+        <button class="btn sm" onclick="addSkill()">Add</button>
+      </div>
+      <div class="chips" id="skillsList"></div>
+    </div>
+    <!-- Education -->
+    <div class="section">
+      <h2>Education</h2>
+      <div id="eduList"></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addEdu()">+ Add Education</button>
+    </div>
+    <!-- Projects -->
+    <div class="section">
+      <h2>Projects</h2>
+      <div id="projList"></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addProj()">+ Add Project</button>
+    </div>
+    <!-- Certificates -->
+    <div class="section">
+      <h2>Certificates</h2>
+      <div id="certList"></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="addCert()">+ Add Certificate</button>
+    </div>
+  </aside>
+  <!-- PREVIEW -->
+  <main class="preview">
+    <div id="paper" class="t-modern"></div>
+  </main>
+</div>
+<script>
+const STORAGE_KEY = "portfolio-maker-v1";
+const state = {
+  template: "modern",
+  avatar: "",
+  name: "Your Name",
+  title: "Your Title",
+  about: "Tell the world what you do.",
+  email: "", phone: "", location: "", website: "",
+  skills: [],
+  education: [],
+  projects: [],
+  certificates: []
+};
+/* ---------- Load / Save ---------- */
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  flash("Saved!");
+}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) Object.assign(state, JSON.parse(raw));
+  }catch(e){}
+}
+function resetAll(){
+  if(!confirm("Reset everything?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+function flash(msg){
+  const d=document.createElement("div");
+  d.textContent=msg;
+  d.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 18px;border-radius:8px;z-index:99;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3)";
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1500);
+}
+/* ---------- Field bindings ---------- */
+function bindField(id, key){
+  const el=document.getElementById(id);
+  el.value = state[key] || "";
+  el.addEventListener("input", ()=>{ state[key]=el.value; render(); });
+}
+/* ---------- Avatar ---------- */
+function setupAvatar(){
+  const inp=document.getElementById("avatarInput");
+  inp.addEventListener("change", e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ state.avatar=r.result; document.getElementById("avatarPreview").src=r.result; render(); };
+    r.readAsDataURL(f);
+  });
+  if(state.avatar) document.getElementById("avatarPreview").src=state.avatar;
+}
+function removeAvatar(){ state.avatar=""; document.getElementById("avatarPreview").removeAttribute("src"); render(); }
+/* ---------- Skills ---------- */
+function addSkill(){
+  const inp=document.getElementById("skillInput");
+  const v=inp.value.trim(); if(!v) return;
+  state.skills.push(v); inp.value=""; renderSkills(); render();
+}
+function removeSkill(i){ state.skills.splice(i,1); renderSkills(); render(); }
+function renderSkills(){
+  const c=document.getElementById("skillsList");
+  c.innerHTML = state.skills.map((s,i)=>`<span class="chip">${esc(s)}<button onclick="removeSkill(${i})">×</button></span>`).join("");
+}
+/* ---------- Repeatable sections ---------- */
+function makeRepeater(key, fields, listId){
+  return {
+    add(){ state[key].push(Object.fromEntries(fields.map(f=>[f.k,""]))); this.render(); render(); },
+    remove(i){ state[key].splice(i,1); this.render(); render(); },
+    update(i,k,v){ state[key][i][k]=v; render(); },
+    render(){
+      const c=document.getElementById(listId);
+      c.innerHTML = state[key].map((item,i)=>`
+        <div class="card">
+          <div class="card-head"><strong>#${i+1}</strong>
+            <button class="btn danger sm" onclick="repeaters.${key}.remove(${i})">Remove</button>
+          </div>
+          ${fields.map(f=>`
+            <label>${f.label}</label>
+            ${f.type==="textarea"
+              ? `<textarea oninput="repeaters.${key}.update(${i},'${f.k}',this.value)" placeholder="${f.ph||""}">${esc(item[f.k]||"")}</textarea>`
+              : `<input value="${esc(item[f.k]||"")}" oninput="repeaters.${key}.update(${i},'${f.k}',this.value)" placeholder="${f.ph||""}" />`}
+          `).join("")}
+        </div>`).join("") || `<p class="empty">No entries yet.</p>`;
+    }
+  };
+}
+const repeaters = {
+  education: makeRepeater("education",[
+    {k:"school",label:"School / University",ph:"Harvard University"},
+    {k:"degree",label:"Degree",ph:"B.Sc. Computer Science"},
+    {k:"year",label:"Year",ph:"2020 - 2024"},
+  ],"eduList"),
+  projects: makeRepeater("projects",[
+    {k:"name",label:"Project Name",ph:"Marketing Dashboard"},
+    {k:"desc",label:"Description",type:"textarea",ph:"What did you build?"},
+    {k:"link",label:"Link",ph:"https://..."},
+  ],"projList"),
+  certificates: makeRepeater("certificates",[
+    {k:"name",label:"Certificate Name",ph:"Google Analytics Certified"},
+    {k:"issuer",label:"Issuer",ph:"Google"},
+    {k:"year",label:"Year",ph:"2026"},
+  ],"certList"),
+};
+function addEdu(){repeaters.education.add()}
+function addProj(){repeaters.projects.add()}
+function addCert(){repeaters.certificates.add()}
+/* ---------- Templates ---------- */
+function setupTemplates(){
+  document.querySelectorAll(".tpl").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll(".tpl").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      state.template = el.dataset.tpl;
+      render();
+    });
+    if(el.dataset.tpl===state.template) el.classList.add("active"); else el.classList.remove("active");
+  });
+}
+/* ---------- Render preview ---------- */
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(){
+  const p=document.getElementById("paper");
+  p.className = "t-"+state.template;
+  const av = state.avatar ? `<img src="${state.avatar}" alt="">` : "";
+  const contact = [
+    state.email && `<span>✉ ${esc(state.email)}</span>`,
+    state.phone && `<span>☎ ${esc(state.phone)}</span>`,
+    state.location && `<span>📍 ${esc(state.location)}</span>`,
+    state.website && `<span>🔗 ${esc(state.website)}</span>`,
+  ].filter(Boolean).join("");
+  const hero = `
+    <div class="hero">
+      ${av}
+      <div>
+        <div class="kicker">Hello, I'm</div>
+        <h1>${esc(state.name)||"Your Name"}</h1>
+        <div class="title">${esc(state.title)||"Your Title"}</div>
+        ${contact?`<div class="contact">${contact}</div>`:""}
+      </div>
+    </div>`;
+  const section = (title, html) => html ? `<h2 class="sec">${title}</h2>${html}` : "";
+  const about = state.about ? `<p style="line-height:1.7;color:#374151;margin:0 0 16px">${esc(state.about)}</p>` : "";
+  const skills = state.skills.length
+    ? `<div>${state.skills.map(s=>`<span class="skill">${esc(s)}</span>`).join("")}</div>` : "";
+  const projects = state.projects.length
+    ? `<div class="grid">${state.projects.map(p=>`
+        <div class="item">
+          <h3>${esc(p.name)||"Untitled"}</h3>
+          ${p.link?`<div class="meta">${esc(p.link)}</div>`:""}
+          <p style="margin:6px 0 0;font-size:13px;color:#4b5563;line-height:1.5">${esc(p.desc)||""}</p>
+        </div>`).join("")}</div>` : "";
+  const certs = state.certificates.length
+    ? `<div class="grid">${state.certificates.map(c=>`
+        <div class="item">
+          <h3>${esc(c.name)||"Untitled"}</h3>
+          <div class="meta">${esc(c.issuer)}${c.year?` · ${esc(c.year)}`:""}</div>
+        </div>`).join("")}</div>` : "";
+  const edu = state.education.length
+    ? `<div class="grid">${state.education.map(e=>`
+        <div class="item">
+          <h3>${esc(e.school)||"Untitled"}</h3>
+          <div class="meta">${esc(e.degree)}${e.year?` · ${esc(e.year)}`:""}</div>
+        </div>`).join("")}</div>` : "";
+  p.innerHTML = hero + `<div class="body">
+    ${section("About", about)}
+    ${section("Skills", skills)}
+    ${section("Projects", projects)}
+    ${section("Certificates", certs)}
+    ${section("Education", edu)}
+  </div>`;
+}
+/* ---------- Download ---------- */
+function downloadPortfolio(){
+  // Use browser print → Save as PDF. Also offer HTML download.
+  const choice = confirm("OK = Download as PDF (via print dialog)\nCancel = Download as standalone HTML file");
+  if(choice){ window.print(); return; }
+  const paper = document.getElementById("paper");
+  const styles = Array.from(document.styleSheets).map(s=>{
+    try{ return Array.from(s.cssRules).map(r=>r.cssText).join("\n"); }catch(e){return ""}
+  }).join("\n");
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(state.name)} — Portfolio</title><style>${styles}
+    body{background:#f3f4f6;padding:30px;margin:0}
+    #paper{max-width:900px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.1)}
+  </style></head><body><div id="paper" class="${paper.className}">${paper.innerHTML}</div></body></html>`;
+  const blob = new Blob([html],{type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (state.name||"portfolio").replace(/\s+/g,"_")+".html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+/* ---------- Init ---------- */
+loadData();
+["f_name:name","f_title:title","f_about:about","f_email:email","f_phone:phone","f_location:location","f_website:website"]
+  .forEach(s=>{const[id,k]=s.split(":");bindField(id,k)});
+setupAvatar();
+setupTemplates();
+renderSkills();
+repeaters.education.render();
+repeaters.projects.render();
+repeaters.certificates.render();
+render();
+// Auto-save
+setInterval(()=>localStorage.setItem(STORAGE_KEY, JSON.stringify(state)), 5000);
+</script>
+</body>
+</html>
